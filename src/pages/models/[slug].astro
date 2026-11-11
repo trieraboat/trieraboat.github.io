@@ -1,0 +1,247 @@
+---
+import Base from '../../layouts/Base.astro';
+import ModelCard from '../../components/ModelCard.astro';
+import LeadForm from '../../components/LeadForm.astro';
+import { models, details, formatPrice } from '../../data/models.js';
+import { series } from '../../data/series.js';
+
+export function getStaticPaths() {
+  return models.map((m) => ({ params: { slug: m.slug }, props: { m } }));
+}
+
+const { m } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const d = details[m.slug];
+const s = series.find((x) => x.id === m.series);
+const [num, ...rest] = m.name.split(' ');
+const dir = `${base}images/models/${m.slug}/`;
+const gallery = d?.gallery?.map((f) => dir + f) ?? (m.photo === null ? [] : [dir + 'cover.webp']);
+const f = (v) => String(v).replace('.', ',');
+const f2 = (v) => v.toFixed(2).replace('.', ',');
+
+const specs = [
+  ['Длина', `${f2(m.length)} м`],
+  m.lengthOverall && ['Длина габаритная', `${f(m.lengthOverall)} м`],
+  m.hullLength && ['Длина по корпусу', `${f(m.hullLength)} м`],
+  ['Ширина', `${f(m.beam)} м`],
+  ['Высота борта', `${f(m.height)} м`],
+  ['Масса корпуса', `${m.weight} кг`],
+  ['Грузоподъёмность', `${m.payload} кг`],
+  ['Пассажировместимость', `${m.people} чел.`],
+  ['Мотор, не мощнее', `${m.hp} л.с.`],
+  ['Высота транца', `${m.transom.replace(/\//g, ' / ')} мм`],
+  ['Килеватость на транце', `${m.deadrise}°`],
+  ['Толщина борта', `${f(m.side)} мм`],
+  ['Толщина днища', `${f(m.bottom)} мм`],
+  ['Топливный бак', `${m.fuel} л`],
+  ['Материал корпуса', 'Алюминиево-магниевый сплав'],
+].filter(Boolean);
+
+const related = models.filter((x) => x.series === m.series && x.slug !== m.slug && !x.prototype).slice(0, 3);
+---
+<Base title={`Триера ${m.name} — ${s.tagline.toLowerCase()}, от ${formatPrice(m.price)}`} description={m.short}>
+
+  <section class="head">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Навигация"><a href={base}>Главная</a> / <a href={`${base}#models`}>Модели</a> / <span>{m.name}</span></nav>
+      <div class="head-grid">
+        <div class="gallery">
+          {gallery.length ? (
+            <>
+              <div class="main"><img id="main-img" src={gallery[0]} alt={`Триера ${m.name}`} width="900" height="600" /></div>
+              {gallery.length > 1 && (
+                <div class="thumbs" role="list">
+                  {gallery.map((g, i) => (
+                    <button role="listitem" class:list={{ on: i === 0 }} data-src={g} aria-label={`Фото ${i + 1} из ${gallery.length}`}>
+                      <img src={g} alt="" loading="lazy" width="150" height="100" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div class="main nopic"><img src={`${base}images/logo.png`} alt="" /><span>Фото этой модели скоро появится</span></div>
+          )}
+        </div>
+
+        <div class="summary">
+          {m.prototype ? <span class="badge badge-proto">Прототип</span> : m.isNew && <span class="badge">Новинка</span>}
+          <h1><span class="num">{num}</span> <span class="rest">{rest.join(' ')}</span></h1>
+          <div class="ser">Серия «{s.name}» — {s.tagline.toLowerCase()}</div>
+          <p class="lead">{d?.lead ?? m.short}</p>
+          <div class="hl">
+            {(d?.highlights ?? [
+              { value: `${f2(m.length)} м`, label: 'длина' },
+              { value: `${f(m.beam)} м`, label: 'ширина' },
+              { value: `${m.hp} л.с.`, label: 'макс. мотор' },
+              { value: `${m.people} чел.`, label: 'на борту' },
+            ]).map((h) => <div><b>{h.value}</b><span>{h.label}</span></div>)}
+          </div>
+          <div class="price-box">
+            <div>
+              <div class="price">от {formatPrice(m.price)}</div>
+              <div class="price-note">Катер в стандартной комплектации, без мотора</div>
+            </div>
+            <a class="btn" href="#order">Узнать цену с мотором</a>
+          </div>
+          {m.prototype && <p class="proto-note">Это прототип: характеристики и цена могут измениться до запуска в серию.</p>}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {d?.description && (
+    <section class="section about">
+      <div class="wrap two">
+        <h2>О катере</h2>
+        <div>{d.description.map((p) => <p>{p}</p>)}</div>
+      </div>
+    </section>
+  )}
+
+  <section class="section specs-sec">
+    <div class="wrap two">
+      <h2>Характеристики</h2>
+      <dl class="specs">
+        {specs.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
+    </div>
+  </section>
+
+  {d?.equipment && (
+    <section class="section equip">
+      <div class="wrap two">
+        <div>
+          <h2>Комплектация</h2>
+          <p class="muted">Всё перечисленное входит в базовую цену.</p>
+          {d.colors && (
+            <div class="colors">
+              <h3>Цвет бортов</h3>
+              <ul>{d.colors.map((c) => <li><i style={`background:${c.hex}`}></i>{c.name}</li>)}</ul>
+            </div>
+          )}
+        </div>
+        <div class="eq-list">
+          {d.equipment.map((g, i) => (
+            <details open={i === 0}>
+              <summary>{g.group}<span>{g.items.length}</span></summary>
+              <ul>{g.items.map((it) => <li>{it}</li>)}</ul>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  {d?.videos?.length > 0 && (
+    <section class="section video">
+      <div class="wrap">
+        <div class="section-head"><h2>Видео</h2></div>
+        {d.videos.map((v) => (
+          <div class="frame"><iframe src={v} title={`Видео Триера ${m.name}`} loading="lazy" allow="clipboard-write; autoplay" allowfullscreen></iframe></div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="section order" id="order">
+    <div class="wrap two">
+      <div>
+        <h2>Узнать цену с мотором</h2>
+        <p>Подберём мотор, прицеп и опции под ваши задачи и подскажем, где посмотреть катер вживую.</p>
+      </div>
+      <LeadForm selected={m.slug} button="Получить расчёт" />
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head"><h2>Ещё в серии «{s.name}»</h2></div>
+        <div class="grid">{related.map((r) => <ModelCard m={r} />)}</div>
+      </div>
+    </section>
+  )}
+
+  <script>
+    const main = document.getElementById('main-img');
+    document.querySelectorAll('.thumbs button').forEach((b) => b.addEventListener('click', () => {
+      main.src = b.dataset.src;
+      document.querySelectorAll('.thumbs button').forEach((x) => x.classList.toggle('on', x === b));
+    }));
+  </script>
+</Base>
+
+<style>
+  .head { background: var(--ink); color: var(--white); padding: 28px 0 64px; }
+  .crumbs { font-size: 14px; color: #8a98a1; margin-bottom: 28px; }
+  .crumbs a { color: #c5cdd2; }
+  .head-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(28px, 4vw, 56px); align-items: start; }
+  @media (max-width: 920px) { .head-grid { grid-template-columns: 1fr; } }
+
+  .gallery, .summary { min-width: 0; }
+  .main img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+  .main.nopic { aspect-ratio: 3/2; display: grid; place-content: center; justify-items: center; gap: 12px; background: var(--ink-2); color: #8a98a1; }
+  .main.nopic img { width: 180px; aspect-ratio: auto; opacity: .35; }
+  .thumbs { display: flex; gap: 8px; overflow-x: auto; margin-top: 8px; padding-bottom: 4px; }
+  .thumbs button { flex: 0 0 96px; padding: 0; border: 2px solid transparent; background: none; cursor: pointer; opacity: .6; }
+  .thumbs button.on, .thumbs button:hover { opacity: 1; border-color: var(--red); }
+  .thumbs img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+
+  .summary h1 { margin: 14px 0 8px; display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .summary h1 .num { font-size: clamp(72px, 9vw, 120px); }
+  .summary h1 .rest { color: var(--red); font-size: clamp(30px, 3.4vw, 44px); }
+  .ser { color: #8a98a1; font-size: 15px; }
+  .lead { font-size: 19px; color: #dfe5e8; margin: 22px 0 28px; }
+  .hl { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--ink-2); border-bottom: 1px solid var(--ink-2); }
+  .hl div { padding: 16px 12px 16px 0; display: grid; gap: 2px; }
+  .hl div + div { padding-left: 12px; border-left: 1px solid var(--ink-2); }
+  .hl b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+  .hl span { font-size: 13px; color: #8a98a1; }
+  @media (max-width: 480px) { .hl { grid-template-columns: 1fr 1fr; } .hl div:nth-child(odd) { padding-left: 0; border-left: 0; } .hl div:nth-child(n+3) { border-top: 1px solid var(--ink-2); } }
+  .price-box { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-top: 28px; }
+  .price { font-family: var(--display); font-size: 32px; }
+  .price-note { font-size: 13px; color: #8a98a1; }
+  .proto-note { margin-top: 18px; font-size: 14px; color: #c5cdd2; border-left: 3px solid var(--red); padding-left: 12px; }
+
+  .two { display: grid; grid-template-columns: 1fr 2fr; gap: clamp(24px, 5vw, 72px); align-items: start; }
+  @media (max-width: 820px) { .two { grid-template-columns: 1fr; } }
+  .about p { font-size: 18px; }
+  .muted { color: var(--muted); margin-top: 14px; }
+
+  .specs-sec { background: var(--steel); }
+  .specs { margin: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 40px; }
+  .specs div { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .specs dt { color: var(--muted); }
+  .specs dd { margin: 0; font-weight: 600; text-align: right; }
+  @media (max-width: 600px) { .specs { grid-template-columns: 1fr; } }
+
+  .colors { margin-top: 32px; }
+  .colors h3 { font-size: 18px; margin-bottom: 14px; }
+  .colors ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .colors li { display: flex; align-items: center; gap: 12px; }
+  .colors i { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+
+  .eq-list details { border-top: 1px solid var(--line); }
+  .eq-list details:last-child { border-bottom: 1px solid var(--line); }
+  .eq-list summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; padding: 18px 0; font-family: var(--display); font-size: 20px; }
+  .eq-list summary::-webkit-details-marker { display: none; }
+  .eq-list summary span { font: 600 14px var(--text); color: var(--muted); display: flex; align-items: center; gap: 12px; }
+  .eq-list summary span::after { content: '+'; font-size: 24px; color: var(--red); width: 16px; text-align: center; }
+  .eq-list details[open] summary span::after { content: '–'; }
+  .eq-list ul { margin: 0 0 22px; padding-left: 20px; columns: 2; column-gap: 32px; }
+  .eq-list li { break-inside: avoid; margin-bottom: 8px; font-size: 15px; }
+  .eq-list li::marker { color: var(--red); }
+  @media (max-width: 600px) { .eq-list ul { columns: 1; } }
+
+  .video { background: var(--ink); color: var(--white); }
+  .frame { aspect-ratio: 16/9; max-width: 960px; }
+  .frame iframe { width: 100%; height: 100%; border: 0; }
+
+  .order { background: var(--steel); }
+  .order h2 { margin-bottom: 18px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+</style>

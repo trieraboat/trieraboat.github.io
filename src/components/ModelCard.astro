@@ -1,0 +1,46 @@
+---
+import { formatPrice } from '../data/models.js';
+import { series } from '../data/series.js';
+const { m } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const [num, ...rest] = m.name.split(' ');
+const sName = series.find((s) => s.id === m.series)?.name;
+const img = m.photo === null ? null : `${base}images/models/${m.slug}/cover.webp`;
+const href = `${base}models/${m.slug}/`;
+---
+<a class="card" href={href} data-series={m.series}>
+  <div class="pic">
+    {img ? <img src={img} alt={`Катер Триера ${m.name}`} loading="lazy" width="900" height="600" />
+         : <div class="nopic"><img src={`${base}images/logo.png`} alt="" /><span>Фото скоро появится</span></div>}
+    {m.prototype ? <span class="badge badge-proto">Прототип</span> : m.isNew && <span class="badge">Новинка</span>}
+  </div>
+  <div class="body">
+    <div class="title"><span class="num">{num}</span><span class="rest">{rest.join(' ')}</span></div>
+    <p class="short">{m.short}</p>
+    <dl class="specs">
+      <div><dt>Длина</dt><dd>{m.length.toFixed(2).replace('.', ',')} м</dd></div>
+      <div><dt>Мотор</dt><dd>до {m.hp} л.с.</dd></div>
+      <div><dt>Мест</dt><dd>{m.people}</dd></div>
+    </dl>
+    <div class="price">от {formatPrice(m.price)}</div>
+  </div>
+</a>
+<style>
+  .card { display: flex; flex-direction: column; text-decoration: none; background: var(--white); border-bottom: 3px solid transparent; transition: border-color .15s; }
+  .card:hover { border-bottom-color: var(--red); }
+  .card:hover .pic img { transform: scale(1.03); }
+  .pic { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: var(--steel); }
+  .pic > img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+  .pic .badge { position: absolute; top: 12px; left: 12px; }
+  .nopic { height: 100%; display: grid; place-content: center; justify-items: center; gap: 10px; background: var(--ink); color: #8a98a1; font-size: 14px; }
+  .nopic img { width: 120px; opacity: .35; }
+  .body { padding: 20px 20px 22px; display: flex; flex-direction: column; flex: 1; }
+  .title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .title .num { font-size: 44px; color: var(--ink); }
+  .title .rest { font-family: var(--display); font-size: 19px; color: var(--red); }
+  .short { font-size: 15px; color: var(--muted); margin-bottom: 16px; }
+  .specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: auto 0 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .specs dt { font-size: 12px; color: var(--muted); }
+  .specs dd { margin: 0; font-weight: 600; font-size: 15px; }
+  .price { font-weight: 700; font-size: 19px; }
+</style>

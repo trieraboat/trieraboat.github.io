@@ -1,0 +1,17 @@
+---
+import { models } from '../data/models.js';
+const { selected = '', title = 'Подобрать катер', button = 'Отправить заявку' } = Astro.props;
+---
+<form class="form" data-demo>
+  <label>Имя<input name="name" autocomplete="name" required /></label>
+  <label>Телефон<input name="phone" type="tel" autocomplete="tel" placeholder="+7" required /></label>
+  <label>Модель
+    <select name="model">
+      <option value="">Пока не выбрал</option>
+      {models.map((m) => <option selected={m.slug === selected}>Триера {m.name}</option>)}
+    </select>
+  </label>
+  <label class="check"><input type="checkbox" required /> <span>Согласен на обработку персональных данных</span></label>
+  <button class="btn" type="submit">{button}</button>
+  <p class="form-note" role="status">Это пробная версия сайта — заявки пока не отправляются. В рабочей версии заявка придёт в Telegram и на почту.</p>
+</form>

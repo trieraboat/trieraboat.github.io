@@ -1,0 +1,229 @@
+---
+import Base from '../layouts/Base.astro';
+import ModelCard from '../components/ModelCard.astro';
+import LeadForm from '../components/LeadForm.astro';
+import { models, formatPrice } from '../data/models.js';
+import { series } from '../data/series.js';
+
+const base = import.meta.env.BASE_URL;
+const order = ['fish', 'bowrider', 'magnum-sport', 'sever'];
+const sorted = [...models].sort((a, b) => order.indexOf(a.series) - order.indexOf(b.series) || a.length - b.length);
+const catalog = sorted.filter((m) => !m.prototype);
+const proto = models.find((m) => m.prototype);
+
+// Линейка размеров: шкала от 4,0 до 6,2 м
+const MIN = 4.0, MAX = 6.2;
+const x = (len) => ((len - MIN) / (MAX - MIN)) * 100;
+const ticks = [4.0, 4.5, 5.0, 5.5, 6.0];
+const lanes = order.map((id) => ({
+  ...series.find((s) => s.id === id),
+  items: catalog.filter((m) => m.series === id),
+}));
+const seriesStats = order.map((id) => {
+  const list = models.filter((m) => m.series === id && !m.prototype);
+  return { ...series.find((s) => s.id === id), count: list.length, from: Math.min(...list.map((m) => m.price)),
+    range: `${String(Math.min(...list.map((m) => m.length))).replace('.', ',')}–${String(Math.max(...list.map((m) => m.length))).replace('.', ',')} м` };
+});
+const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'модель' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'модели' : 'моделей');
+---
+<Base title="Триера — алюминиевые катера для рыбалки и отдыха">
+
+  <section class="hero">
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <h1>Алюминиевые катера для рыбалки и отдыха</h1>
+        <p>Делаем в Казани. {catalog.length} моделей длиной от 4,2 до 6 метров — от лёгкого «Фиша» на четверых до шестиметрового «Магнума».</p>
+        <div class="hero-cta">
+          <a class="btn" href="#models">Смотреть модели</a>
+          <a class="btn btn-ghost" href="#buy">Подобрать с менеджером</a>
+        </div>
+      </div>
+      <div class="hero-pic">
+        <img src={`${base}images/models/540-magnum-sport/cover.webp`} alt="Катер Триера 540 Магнум Спорт на реке" width="900" height="600" />
+        <span class="hero-cap"><span class="num">540</span> Магнум Спорт</span>
+      </div>
+    </div>
+
+    <div class="wrap ruler-wrap">
+      <h2 class="ruler-title">Выберите размер</h2>
+      <div class="ruler-scroll">
+        <div class="ruler" role="list">
+          <div class="scale" aria-hidden="true">
+            {ticks.map((t) => <span style={`left:${x(t)}%`}>{String(t.toFixed(1)).replace('.', ',')} м</span>)}
+          </div>
+          {lanes.map((lane) => (
+            <div class="lane">
+              <div class="lane-name">{lane.name}</div>
+              <div class="lane-track">
+                {lane.items.map((m) => (
+                  <a role="listitem" class:list={['mark', { proto: m.prototype }]} href={`${base}models/${m.slug}/`} style={`left:${x(m.length)}%`}
+                     title={`Триера ${m.name}: ${String(m.length).replace('.', ',')} м, до ${m.hp} л.с., от ${formatPrice(m.price)}`}>
+                    <span class="num">{m.name.split(' ')[0]}</span>
+                    <i></i>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p class="ruler-hint">Точка — длина катера. Нажмите на номер, чтобы открыть модель.</p>
+    </div>
+  </section>
+
+  <section class="section" id="models">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Модели</h2>
+        <div class="filters" role="group" aria-label="Фильтр по серии">
+          <button class="on" data-f="all" aria-pressed="true">Все</button>
+          {series.map((s) => <button data-f={s.id} aria-pressed="false">{s.name}</button>)}
+        </div>
+      </div>
+      <div class="grid">
+        {catalog.map((m) => <ModelCard m={m} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section series" id="series">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Четыре серии</h2>
+        <p>Корпуса похожи, а назначение разное: решите, что вам важнее — рыбалка, отдых или всё сразу.</p>
+      </div>
+      <div class="series-grid">
+        {seriesStats.map((s) => (
+          <div class="series-item">
+            <h3>{s.name}</h3>
+            <div class="series-tag">{s.tagline}</div>
+            <p>{s.text}</p>
+            <div class="series-meta">{s.count} {plural(s.count)}, {s.range}<br />от {formatPrice(s.from)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="proto" id="prototype">
+    <div class="wrap proto-in">
+      <div class="proto-pic">
+        <img src={`${base}images/models/460-fish-2027/cover.webp`} alt="Прототип Триера 460 Фиш 2027" loading="lazy" width="900" height="600" />
+      </div>
+      <div class="proto-text">
+        <span class="badge">Прототип</span>
+        <h2><span class="num">460</span> Фиш 2027</h2>
+        <p>Это ещё не серийный катер. Мы заранее показываем следующее поколение 460 Фиш, чтобы до запуска в серию узнать, что вы хотели бы в нём изменить.</p>
+        <p>Корпус стал длиннее — 4,95 м против 4,6 м, ширина выросла до 2 метров.</p>
+        <div class="hero-cta">
+          <a class="btn" href="https://t.me/trieraofficial" target="_blank" rel="noopener">Обсудить в Telegram</a>
+          <a class="btn btn-ghost" href={`${base}models/${proto.slug}/`}>Характеристики</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><h2>Почему Триера</h2></div>
+      <div class="why">
+        <div><h3>Алюминиево-магниевый сплав</h3><p>Корпус не ржавеет, обычно легче стеклопластикового и спокойно переносит мели и причалы.</p></div>
+        <div><h3>Толстый металл</h3><p>У катеров от 4,9 метра борт 3 мм и днище 4 мм. У младших моделей — 2–2,5 и 3 мм.</p></div>
+        <div><h3>Свой цвет и транец</h3><p>Борта красим в один из четырёх цветов, высоту транца подбираем под ваш мотор.</p></div>
+        <div><h3>Сделано в Казани</h3><p>Производство Триеры находится в Казани.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section buy" id="buy">
+    <div class="wrap buy-in">
+      <div>
+        <h2>Где купить</h2>
+        <p>Дилерская сеть Триеры сейчас расширяется. Оставьте заявку — подскажем, где посмотреть катер вживую, и посчитаем цену с мотором.</p>
+        <p>Или позвоните: <a href="tel:88005052155"><b>8 800 505-21-55</b></a>, звонок бесплатный.</p>
+      </div>
+      <LeadForm />
+    </div>
+  </section>
+
+  <script>
+    const btns = document.querySelectorAll('.filters button');
+    const cards = document.querySelectorAll('.grid .card');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      btns.forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      const f = b.dataset.f;
+      cards.forEach((c) => { c.hidden = f !== 'all' && c.dataset.series !== f; });
+    }));
+  </script>
+</Base>
+
+<style>
+  .hero { background: var(--ink); color: var(--white); padding: clamp(40px, 6vw, 80px) 0 56px; }
+  .hero-in { display: grid; grid-template-columns: 1fr 1.15fr; gap: clamp(28px, 4vw, 64px); align-items: center; }
+  .hero-text p { font-size: 19px; color: #c5cdd2; margin: 24px 0 32px; max-width: 44ch; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-pic { position: relative; }
+  .hero-pic img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+  .hero-cap { position: absolute; left: 0; bottom: -18px; background: var(--red); padding: 10px 16px; font-family: var(--display); font-size: 16px; }
+  .hero-cap .num { font-size: 26px; margin-right: 6px; }
+  @media (max-width: 900px) { .hero-in { grid-template-columns: 1fr; } .hero-pic { order: -1; } }
+
+  .ruler-wrap { margin-top: clamp(64px, 8vw, 104px); }
+  .ruler-title { font-size: 24px; margin-bottom: 20px; }
+  .ruler-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .ruler { min-width: 1000px; position: relative; padding-top: 34px; }
+  .scale { position: absolute; top: 0; left: 150px; right: 30px; height: 100%; }
+  .scale span { position: absolute; top: 0; transform: translateX(-50%); font-size: 13px; color: #8a98a1; }
+  .scale span::after { content: ''; position: absolute; left: 50%; top: 24px; height: calc(var(--h, 260px)); border-left: 1px dashed #3a4a55; }
+  .lane { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; height: 64px; border-top: 1px solid var(--ink-2); }
+  .lane-name { font-weight: 600; font-size: 15px; color: #c5cdd2; }
+  .lane-track { position: relative; height: 100%; }
+  .lane-track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 2px solid #3a4a55; }
+  .mark { position: absolute; top: 0; height: 100%; transform: translateX(-50%); text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .mark .num { font-size: 18px; color: var(--white); order: -1; }
+  .mark i { width: 12px; height: 12px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); box-shadow: 0 0 0 2px var(--red); position: relative; top: 2px; }
+  .mark.proto { flex-direction: column-reverse; }
+  .mark.proto .num { order: 0; font-size: 14px; color: #8a98a1; }
+  .mark.proto i { background: var(--ink); }
+  .mark:hover .num, .mark:focus-visible .num { color: var(--red); }
+  .mark:hover i { transform: scale(1.3); }
+  .ruler-hint { font-size: 14px; color: #8a98a1; margin-top: 16px; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filters button { font: 500 15px var(--text); padding: 10px 16px; border: 1px solid var(--line); background: var(--white); border-radius: var(--radius); cursor: pointer; color: var(--ink); }
+  .filters button.on { background: var(--ink); border-color: var(--ink); color: var(--white); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+
+  .series { background: var(--steel); }
+  .series-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-top: 3px solid var(--ink); }
+  .series-item { padding: 28px 24px 8px 0; display: flex; flex-direction: column; }
+  .series-item + .series-item { padding-left: 24px; border-left: 1px solid var(--line); }
+  .series-item h3 { font-size: 26px; }
+  .series-tag { color: var(--red); font-weight: 600; margin: 6px 0 14px; }
+  .series-item p { font-size: 15px; color: var(--muted); }
+  .series-meta { margin-top: auto; font-weight: 600; font-size: 15px; }
+  @media (max-width: 900px) { .series-grid { grid-template-columns: 1fr 1fr; } .series-item:nth-child(3) { padding-left: 0; border-left: 0; } }
+  @media (max-width: 560px) { .series-grid { grid-template-columns: 1fr; } .series-item, .series-item + .series-item { padding-left: 0; border-left: 0; border-bottom: 1px solid var(--line); padding-bottom: 20px; } }
+
+  .proto { background: var(--ink); color: var(--white); }
+  .proto-in { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: clamp(28px, 5vw, 72px); padding: clamp(56px, 8vw, 104px) var(--gutter); }
+  .proto-pic img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
+  .proto-text h2 { margin: 18px 0 20px; }
+  .proto-text h2 .num { font-size: 1.3em; margin-right: 8px; }
+  .proto-text p { color: #c5cdd2; }
+  .proto-text .hero-cta { margin-top: 28px; }
+  @media (max-width: 860px) { .proto-in { grid-template-columns: 1fr; } }
+
+  .why { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .why h3 { font-size: 19px; margin-bottom: 12px; padding-top: 18px; border-top: 3px solid var(--red); }
+  .why p { font-size: 15px; color: var(--muted); }
+  @media (max-width: 900px) { .why { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .why { grid-template-columns: 1fr; } }
+
+  .buy { background: var(--steel); }
+  .buy-in { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px); }
+  .buy-in h2 { margin-bottom: 20px; }
+  @media (max-width: 800px) { .buy-in { grid-template-columns: 1fr; } }
+</style>

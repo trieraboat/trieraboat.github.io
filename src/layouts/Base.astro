@@ -1,0 +1,112 @@
+---
+import '../styles/global.css';
+const { title, description = 'Алюминиевые катера Триера из Казани: для рыбалки и отдыха. Модели от 4,2 до 6 метров.' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const u = (p = '') => base + p;
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <link rel="icon" href={u('images/logo.png')} />
+</head>
+<body>
+  <a class="sr-only" href="#main">Перейти к содержимому</a>
+  <header class="top">
+    <div class="wrap top-in">
+      <a href={u()} class="logo" aria-label="Триера — на главную"><img src={u('images/logo.png')} alt="Триера" width="120" height="51" /></a>
+      <nav class="nav" aria-label="Главное меню">
+        <a href={u('#models')}>Модели</a>
+        <a href={u('#series')}>Серии</a>
+        <a href={u('#prototype')}>Прототип 2027</a>
+        <a href={u('#buy')}>Где купить</a>
+      </nav>
+      <a class="phone" href="tel:88005052155">8 800 505-21-55</a>
+      <button class="burger" aria-label="Открыть меню" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main"><slot /></main>
+
+  <footer class="foot">
+    <div class="wrap foot-in">
+      <div>
+        <img src={u('images/logo.png')} alt="Триера" width="140" height="59" />
+        <p>Алюминиевые катера для рыбалки и отдыха. Производство — Казань.</p>
+      </div>
+      <div>
+        <h3>Модели</h3>
+        <ul>
+          <li><a href={u('#models')}>Фиш</a></li>
+          <li><a href={u('#models')}>Боурайдер</a></li>
+          <li><a href={u('#models')}>Магнум Спорт</a></li>
+          <li><a href={u('#models')}>Север</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Связаться</h3>
+        <ul>
+          <li><a href="tel:88005052155">8 800 505-21-55</a>, бесплатно по России</li>
+          <li><a href="https://t.me/trieraofficial" target="_blank" rel="noopener">Telegram</a></li>
+          <li><a href="https://vk.ru/triera43" target="_blank" rel="noopener">ВКонтакте</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="wrap legal">
+      <span>© {new Date().getFullYear()} Триера</span>
+      <span>Цены указаны за катер в стандартной комплектации без мотора. Не является публичной офертой.</span>
+    </div>
+  </footer>
+
+  <script>
+    const b = document.querySelector('.burger');
+    const n = document.querySelector('.nav');
+    b?.addEventListener('click', () => {
+      const open = n.classList.toggle('open');
+      b.setAttribute('aria-expanded', String(open));
+    });
+    n?.addEventListener('click', (e) => { if (e.target.tagName === 'A') { n.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
+    // Пробная версия: формы не отправляются
+    document.querySelectorAll('form[data-demo]').forEach((f) => f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      f.querySelector('.form-note')?.classList.add('show');
+    }));
+  </script>
+</body>
+</html>
+
+<style>
+  .top { position: sticky; top: 0; z-index: 50; background: var(--ink); color: var(--white); }
+  .top-in { display: flex; align-items: center; gap: 32px; height: 72px; }
+  .logo img { width: 112px; height: auto; }
+  .nav { display: flex; gap: 28px; margin-left: auto; }
+  .nav a { text-decoration: none; font-weight: 500; font-size: 15px; opacity: .85; }
+  .nav a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; text-decoration-color: var(--red); text-decoration-thickness: 2px; }
+  .phone { font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .burger { display: none; background: none; border: 0; width: 40px; height: 40px; padding: 8px; cursor: pointer; }
+  .burger span { display: block; height: 2px; background: var(--white); margin: 7px 0; }
+  @media (max-width: 860px) {
+    .nav { display: none; position: absolute; top: 72px; left: 0; right: 0; flex-direction: column; gap: 0; background: var(--ink); padding: 8px var(--gutter) 20px; }
+    .nav.open { display: flex; }
+    .nav a { padding: 14px 0; border-bottom: 1px solid var(--ink-2); font-size: 18px; }
+    .phone { margin-left: auto; font-size: 15px; }
+    .burger { display: block; }
+  }
+  @media (max-width: 420px) { .phone { display: none; } .burger { margin-left: auto; } }
+
+  .foot { background: var(--ink); color: #c5cdd2; padding: 64px 0 28px; margin-top: 0; }
+  .foot-in { display: grid; grid-template-columns: 2fr 1fr 1.4fr; gap: 40px; }
+  .foot h3 { color: var(--white); font-size: 17px; margin-bottom: 14px; }
+  .foot ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .foot a { color: var(--white); }
+  .foot p { margin-top: 18px; max-width: 34ch; }
+  .legal { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 13px; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--ink-2); }
+  @media (max-width: 760px) { .foot-in { grid-template-columns: 1fr; } }
+</style>
