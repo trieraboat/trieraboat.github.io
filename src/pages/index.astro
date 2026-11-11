@@ -39,8 +39,8 @@ const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'модель' : [2, 3, 
         </div>
       </div>
       <div class="hero-pic">
-        <img src={`${base}images/models/540-magnum-sport/cover.webp`} alt="Катер Триера 540 Магнум Спорт на реке" width="900" height="600" />
-        <span class="hero-cap"><span class="num">540</span> Магнум Спорт</span>
+        <img src={`${base}images/models/430-sever/cover.webp`} alt="Катер Триера 430 Север на осенней реке" width="900" height="600" />
+        <a class="hero-cap" href={`${base}models/430-sever/`}><span class="num">430</span> Север</a>
       </div>
     </div>
 
@@ -164,9 +164,9 @@ const plural = (n) => (n % 10 === 1 && n % 100 !== 11 ? 'модель' : [2, 3, 
   .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
   .hero-pic { position: relative; }
   .hero-pic img { width: 100%; aspect-ratio: 3/2; object-fit: cover; }
-  .hero-cap { position: absolute; left: 0; bottom: -18px; background: var(--red); padding: 10px 16px; font-family: var(--display); font-size: 16px; }
+  .hero-cap { text-decoration: none; color: var(--white); position: absolute; left: 0; bottom: -18px; background: var(--red); padding: 10px 16px; font-family: var(--display); font-size: 16px; }
   .hero-cap .num { font-size: 26px; margin-right: 6px; }
-  @media (max-width: 900px) { .hero-in { grid-template-columns: 1fr; } .hero-pic { order: -1; } }
+  @media (max-width: 900px) { .hero-in { grid-template-columns: 1fr; row-gap: 44px; } .hero-pic { order: -1; } }
 
   .ruler-wrap { margin-top: clamp(64px, 8vw, 104px); }
   .ruler-title { font-size: 24px; margin-bottom: 20px; }
